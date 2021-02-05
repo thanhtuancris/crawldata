@@ -302,6 +302,128 @@ app.post('/profile', async function (req, res){
     });
     
 });
+app.post('/diem', async function (req, res){
+    let id = req.body.id;
+    var options = {
+      'method': 'GET',
+      'url': 'http://dkmh.tnut.edu.vn/Default.aspx?page=gioithieu',
+      'headers': {
+
+      }
+    };
+    request(options, function (error, response, html) {
+        if(response){
+            let $ = cheerio.load(html)
+            let a = $('#__VIEWSTATE').attr('value')
+            let options2 = {
+                'method': 'POST',
+                'url': 'http://dkmh.tnut.edu.vn/default.aspx?page=dangnhap',
+                'headers': {
+                    "Host":'dkmh.tnut.edu.vn',
+                    "Connection":'keep-alive',
+                    "Upgrade-Insecure-Requests":'1',
+                    "Origin":'http://dkmh.tnut.edu.vn',
+                   "Content-Type":'multipart/form-data; boundary=----WebKitFormBoundaryltfmpHCvU9QNzQzY',
+                   "User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36',
+                    "Accept":'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                    "Referer":'http://dkmh.tnut.edu.vn/default.aspx?page=dangnhap',
+                   "Accept-Encoding":'',
+                    "Accept-Language":'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+                },
+                form: {
+                    "__EVENTTARGET":'',
+                    "__EVENTARGUMENT":'',
+                    "__VIEWSTATE": a,
+                    "__VIEWSTATEGENERATOR": 'CA0B0334',
+                    "ctl00$ContentPlaceHolder1$ctl00$txtTaiKhoa":'K175520201095',
+                    "ctl00$ContentPlaceHolder1$ctl00$txtMatKhau":'hienkeo1808',
+                    "ctl00$ContentPlaceHolder1$ctl00$btnDangNhap":'Đăng Nhập'
+                }
+            }
+            request(options2, function(err,ress,html2){
+                if(ress){
+                    let cookie = ress.headers['set-cookie']
+                    cookie = cookie.toString()
+                    let rs_cookie = cookie.replace("; path=/; HttpOnly", "")
+                    setTimeout(function(){
+                        let options3 = {
+                            'method': 'GET',
+                            'url': 'http://dkmh.tnut.edu.vn/default.aspx?page=gioithieu',
+                            'headers': {
+                                "Host":'dkmh.tnut.edu.vn',
+                                "Connection":'keep-alive',
+                                "Upgrade-Insecure-Requests":'1',
+                               "User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36',
+                                "Accept":'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                                "Referer":'http://dkmh.tnut.edu.vn/default.aspx?page=dangnhap',
+                               "Accept-Encoding":'',
+                                "Accept-Language":'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+                                "Cookie": rs_cookie
+                            },
+                        }
+                        request(options3, function(errr, rss, html3){
+                            if(rss){
+                                let options4 = {
+                                    'method': 'GET',
+                                    'url': 'http://dkmh.tnut.edu.vn/Default.aspx?page=xemdiemthi',
+                                    'headers': {
+                                        "Host":'dkmh.tnut.edu.vn',
+                                        "Connection":'keep-alive',
+                                        "Upgrade-Insecure-Requests":'1',
+                                       "User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36',
+                                        "Accept":'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                                        "Referer":'http://dkmh.tnut.edu.vn/default.aspx?page=gioithieu',
+                                       "Accept-Encodidng":'',
+                                        "Accept-Lanadguage":'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+                                        "Cookie": rs_cookie
+                                    },
+                                }
+                                request(options4, function(error, rsss, html4) {
+                                    if(rsss){
+                                        let $ = cheerio.load(html4)
+                                        let b = $('#__VIEWSTATE').attr('value')
+                                        let options5 = {
+                                            'method': 'POST',
+                                            'url': 'http://dkmh.tnut.edu.vn/Default.aspx?page=xemdiemthi',
+                                            'headers': {
+                                                "Host":'dkmh.tnut.edu.vn',
+                                                "Connection":'keep-alive',
+                                                "Upgrade-Insecure-Requests":'1',
+                                                "Origin":'http://dkmh.tnut.edu.vn',
+                                               "Content-Type":'multipart/form-data; boundary=----WebKitFormBoundaryltfmpHCvU9QNzQzY',
+                                               "User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36',
+                                                "Accept":'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                                                "Referer":'http://dkmh.tnut.edu.vn/Default.aspx?page=xemdiemthi',
+                                               "Accept-Encoding":'',
+                                                "Accept-Language":'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+                                                "Cookie": rs_cookie
+                                            },
+                                            form: {
+                                                "__EVENTTARGET":'ctl00$ContentPlaceHolder1$ctl00$lnkChangeview2',
+                                                "__EVENTARGUMENT":'',
+                                                "__VIEWSTATE": b,
+                                                "__VIEWSTATEGENERATOR": 'CA0B0334',
+                                                "ctl00$ContentPlaceHolder1$ctl00$txtChonHK":'',
+                                            }
+                                        }
+                                        request(options5, function(errors, results, html5){
+                                            let $ = cheerio.load(html5);
+                                            
+                                        });
+                                    }
+                                })
+                            }
+                        })
+                    }, 3000);
+                  
+                }
+            });
+        }
+       
+        
+    });
+    
+});
 app.listen(port, host, () => {
     console.log("Server running - port " + port);
 });
