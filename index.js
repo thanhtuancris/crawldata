@@ -5,6 +5,7 @@ const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const { parseHTML } = require('cheerio');
+const { type } = require('os');
 const app = express()
 const host = "0.0.0.0";
 const port = 3000;
@@ -30,32 +31,38 @@ app.post('/tkb', async function (req, res) {
             let tableHeaders = [];
             $('#ctl00_ContentPlaceHolder1_ctl00_Table1').each((index, element) => {
                 let td = $(element).find("tbody").find("tr").find("td")
-
-                $(td).map(function(i,e) {
+                $(td).each(function(i,e) {
                     var onmouseover = $(this).attr("onmouseover")
                     if(onmouseover){
-                        // onmouseover = JSON.stringify(onmouseover)
-                        // var arr = [onmouseover]
-                        console.log(onmouseover);
-                        return
-                        for (var j = 0; j < onmouseover.length; j++){
-                            console.log(onmouseover[0]);
-                        }
+                        var regex = /ddrivetip\((.+?)\)/gm;
+                        var match ="["+ regex.exec(onmouseover)[1] + "]";
+                        let dt = JSON.parse(match.split("'").join('"'))
+                        data.push(dt)
                     }
                 });
-                // $(td).map((i, x) =>{
-                //     let rs = $(x).attr('onmouseover')
-                //     $(rs).each(function (i, e){
-                //        console.log(i);
-                //     })
-                // })
-                // $(td).each(function (i, ele) {
-                //     let rs = $(ele).find("table").find("tbody").find("tr").find("td").find("span")
-                //     $(rs).each(function (i,e){
-                //         let rss = $(e).text()
-                //         console.log(rss);
-                //     })
-                // })
+            })
+            let obj
+            let rs_data = []
+            for(let i = 0; i < data.length; i++){
+                obj = {
+                    "loailich": "LichHoc",
+                    "hocphan": data[i][1],
+                    "mamon": data[i][2],
+                    "lop": data[i][0],
+                    "thu": data[i][3],
+                    "diadiem": data[i][5],
+                    "tietbatdau": data[i][6],
+                    "sotiet": data[i][7],
+                    "giaovien": data[i][8],
+                    'batdautu': data[i][9],
+                    'den': data[i][10],
+                }
+                rs_data.push(obj)
+                obj.tiethoc = obj.tietbatdau +"-"+ parseInt(parseInt(obj.tietbatdau) + parseInt(obj.sotiet) -1)
+            }
+            res.status(200).json({
+                status: "OK",
+                data: rs_data
             })
         }
     });
@@ -93,6 +100,42 @@ async function tkb(){
     //     let element = document.getElementsById('ctl00_ContentPlaceHolder1_ctl00_pnlHeader')
     // })
 }
+// app.post('/lichthi', async function (req, res) {
+//     let id = req.body.id;
+//     var options = {
+//       'method': 'GET',
+//       'url': `http://dkmh.tnut.edu.vn/Default.aspx?page=xemlichthi&id=${id}`,
+//       'headers': {
+//         'Cookie': 'ASP.NET_SessionId=5jtqmk45okxr5n2yrlekrb55'
+//       }
+//     };
+//     request(options, async function (error, response, html) {
+//         if(response){
+//             const $ = cheerio.load(html)
+//             let data = [];
+//             let tableHeaders = [];
+//             $("#ctl00_ContentPlaceHolder1_ctl00_gvXem>tbody>tr").each((index, element) => {
+//                 if(index === 0){
+//                     let th = $(element).find("th");
+//                     $(th).each(function(i, e){
+//                         let rs = $(e).text()
+//                         tableHeaders.push(rs)
+//                     })
+//                 }
+//                 let td = $(element).find("td").find("span")
+//                 let tableRow = {}
+//                 $(td).each(function (i, ele) {
+//                     tableRow[tableHeaders[i]] = $(ele).text();
+//                 })
+//                 data.push(tableRow)
+//             });
+//             let result = JSON.stringify(data)
+//             res.status(200).json({
+//                 data: JSON.parse(result)
+//             })
+//         }
+//     });
+// })
 app.post('/lichthi', async function (req, res) {
     let id = req.body.id;
     var options = {
@@ -105,26 +148,39 @@ app.post('/lichthi', async function (req, res) {
     request(options, async function (error, response, html) {
         if(response){
             const $ = cheerio.load(html)
-            let data = [];
-            let tableHeaders = [];
-            $("#ctl00_ContentPlaceHolder1_ctl00_gvXem>tbody>tr").each((index, element) => {
-                if(index === 0){
-                    let th = $(element).find("th");
-                    $(th).each(function(i, e){
-                        let rs = $(e).text()
-                        tableHeaders.push(rs)
-                    })
+            let data = []
+            let temp = []
+            let a = $("#ctl00_ContentPlaceHolder1_ctl00_gvXem>tbody>tr>td").each(function (index, element){
+                let rs = $(element).find("span")
+                let b = $(rs).text()
+                temp.push(b);
+                if((index +1) % 12 ==0){
+                    data.push(temp)
+                    temp = [];
                 }
-                let td = $(element).find("td").find("span")
-                let tableRow = {}
-                $(td).each(function (i, ele) {
-                    tableRow[tableHeaders[i]] = $(ele).text();
-                })
-                data.push(tableRow)
-            });
-            let result = JSON.stringify(data)
+            })
+            let obj;
+            let result = []
+            for(let i = 0; i< data.length; i++){
+                obj = {
+                    "loailich": "LichThi",
+                    "stt": data[i][0],
+                    "hocphan": data[i][2],
+                    "mamon": data[i][1],
+                    "thoigian": data[i][6],
+                    "diadiem": data[i][9],
+                    "sotiet": data[i][8],
+                    "tietbd": data[i][7],
+                    "ghepthi": data[i][3],
+                    "tothi": data[i][4],
+                    "soluong": data[i][5],
+                    "ghichu": data[i][10]
+                }
+                result.push(obj)
+            }
             res.status(200).json({
-                data: JSON.parse(result)
+                status: "OK",
+                data: result
             })
         }
     });
@@ -208,8 +264,29 @@ app.post('/profile', async function (req, res){
                                 }
                                 request(options4, function(error, rsss, html4) {
                                     if(rsss){
-                                        fs.writeFile("ttcn.txt", rsss.body, function(er, rs){
-
+                                        let data = []
+                                        let $ =  cheerio.load(html4)
+                                        let ttcn = $(".infor-member > .center > table > tbody")
+                                        let dt = $(ttcn).find("tr").find("td").find("span")
+                                        $(dt).each(function(i,e){
+                                            let b = $(e).text()
+                                            data.push(b)
+                                        })
+                                        let obj = {
+                                            "Mã sinh viên": data[1],
+                                            "Tên sinh viên": data[3],
+                                            "Phái": data[5],
+                                            "Nơi sinh": data[7],
+                                            "Lớp": data[9],
+                                            "Ngành": data[11],
+                                            "Khoa": data[13],
+                                            "Hệ đào tạo": data[15],
+                                            "Khóa học": data[17],
+                                            "Cố vấn học tập": data[19]
+                                        }
+                                        res.status(200).json({
+                                            status: "OK",
+                                            data: obj
                                         })
                                     }
                                 })
@@ -228,4 +305,3 @@ app.post('/profile', async function (req, res){
 app.listen(port, host, () => {
     console.log("Server running - port " + port);
 });
-
