@@ -697,6 +697,133 @@ app.post('/test2',async function(req, res){
     console.log(b);
     
 })
+app.post('/test3', async function (req, res){
+    var options = {
+        'method': 'POST',
+        'url': 'https://api.dhdt.vn/account/login/check-smartname',
+        'headers': {
+            "accept":'application/json, text/plain, */*',
+            "accept-encoding":'gzip',
+            "user-agent":'okhttp/3.12.1',
+            "connection":'Keep-Alive',
+            "content-type":'application/json;charset=utf-8',
+            "host":'api.dhdt.vn',
+        },
+        'form': {
+            "smartname":'K175520201095',
+            "acc_type":'user'
+        }
+    };
+    request(options, function (error, response) {
+        if(response){
+            let rs = JSON.parse(response.body);
+            let id = rs.list_acc[0]._id;
+            var options2 = {
+                'method': 'POST',
+                'url': 'https://api.dhdt.vn/account/login/passwd',
+                'headers': {
+                    "accept":'application/json, text/plain, */*',
+                    "accept-encoding":'gzip',
+                    "user-agent":'okhttp/3.12.1',
+                    "connection":'Keep-Alive',
+                    "content-type":'application/json;charset=utf-8',
+                    "host":'api.dhdt.vn',
+                    "hostname":'vn.svonline',
+                    "agent":'{"brower":"","version":"","device_name":"","unique_device_id":"","user_agent":"","system_name":"","device_model":"","system_version":""}'
+                },
+                'form': {
+                    "type": "user",
+                    "_id": id,
+                    "passwd": "hienkeo1808",
+                    "code_push": "ExponentPushToken[G0yi1FJFCy2nbmtmGZeS8R]",
+                    "code_device": {
+                      "data": "fRufejqrQHqli30s3-bzvW:APA91bGUJP0lLx_B_pyAxT6vunGXnhPeyZY30Y48ClrgKzI70Khaf-wYnhkHXWYTLJGBKx1PRFXD93EGjeMUaPcrNm5J6miHAXwDF-rAXcd7UqCJXsvJmIIb1igeV5vtd2UIbau_DU9e",
+                      "type": "fcm"
+                    }
+                }
+            };
+            request(options2, function(err, rss){
+                if(rss){
+                    let rs = JSON.parse(rss.body)
+                    let sso_token = rs.sso_token
+                    let refresh_token = rs.refresh_token
+                    let options3 = {
+                        'method': 'POST',
+                        'url': 'https://api.dhdt.vn/calendar/task',
+                        'headers': {
+                            "accept":'application/json, text/plain, */*',
+                            "accept-encoding":'gzip',
+                            "user-agent":'okhttp/3.12.1',
+                            "connection":'Keep-Alive',
+                            "content-type":'application/json;charset=utf-8',
+                            "host":'api.dhdt.vn',
+                            "hostname":'vn.svonline',
+                            "agent":'{"brower":"","version":"","device_name":"","unique_device_id":"","user_agent":"","system_name":"","device_model":"","system_version":""}',
+                            "refresh_token":refresh_token,
+                            "sso_token":sso_token,
+                        },
+                        'form': {
+                            "force_update": true
+                        }
+                    }
+                    request(options3, function(error3, response3){
+                        if(response3){
+                            let rs = JSON.parse(response3.body)
+                            let rss = rs.tasks
+                            let arr = []
+                            for (const [key, value] of Object.entries(rss)) {
+                                arr.push(value[0])
+                            }
+                            let obj, result = [], desc_thi = [], desc_hoc = [], rs_desc_thi = [], rs_desc_hoc = [], descript
+                            for(let i = 0; i < arr.length; i++){
+                                obj = {
+                                    "loailich": arr[i].key,
+                                    "hocphan": arr[i].title,
+                                    "mamon": "",
+                                    "thoigian": arr[i].startAt,
+                                    "tiethoc": "",
+                                    "diadiem": "",
+                                    "hinhthuc": "",
+                                    "giaovien": "",
+                                    'dot': "",
+                                    'sobaodanh':"" ,
+                                    'ghichu': "",
+                                }
+                                if(arr[i].key === 'lich-thi'){
+                                    descript = arr[i].desc.replace(/• Phòng thi:|• Ca thi:|• Tổ thi:|• Mã học phần:|• Số lượng:/gi, "")
+                                    descript = descript.split("\n")
+                                    desc_thi.push(descript)
+                                    for(let j = 0; j < desc_thi.length; j++){
+                                        obj.loailich = "LichThi"
+                                        obj.mamon = desc_thi[j][3].trim();
+                                        obj.diadiem = desc_thi[j][0].trim();
+                                        obj.tiethoc = desc_thi[j][1].trim();
+                                    }
+                                }
+                                if(arr[i].key === 'lich-hoc'){
+                                    descript = arr[i].desc.replace(/• Tiết:|• Phòng:|• Số tín chỉ:|• Số TCHP:|• Nhóm:|• Mã học phần:/gi, "")
+                                    descript = descript.split("\n")
+                                    desc_hoc.push(descript)
+                                    for(let j = 0; j < desc_hoc.length; j++){
+                                        obj.loailich = "LichHoc"
+                                        obj.mamon = desc_hoc[j][2].trim();
+                                        obj.diadiem = desc_hoc[j][1].trim();
+                                        obj.tiethoc = desc_hoc[j][0].trim();
+                                    }
+                                    result.push(obj)
+                                }
+                                // result.push(obj)
+                            }
+                            res.status(200).json({
+                                data: result
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
 app.listen(port, host, () => {
     console.log("Server running - port " + port);
 });
